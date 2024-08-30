@@ -3,14 +3,16 @@ package handlers
 import (
     "encoding/json"
     "net/http"
-    "time"
+    "strings"
+    "time"  // Import time package for handling time-related operations
+
     "go-task-api/models"
     "go-task-api/utils"
-    "github.com/dgrijalva/jwt-go"
+    "github.com/dgrijalva/jwt-go"  // Import jwt-go package for JWT handling
     "golang.org/x/crypto/bcrypt"
-    "gorm.io/gorm"
 )
 
+// Secret key used for signing the JWT tokens
 var jwtKey = []byte("your_secret_key")
 
 type Credentials struct {
@@ -27,7 +29,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
     user := models.User{Username: creds.Username, Password: string(hashedPassword)}
 
     if err := utils.DB.Create(&user).Error; err != nil {
-        if gorm.ErrDuplicateKey == err {
+        // Handle duplicate username error
+        if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
             http.Error(w, "Username already taken", http.StatusBadRequest)
             return
         }
